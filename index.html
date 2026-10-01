@@ -219,8 +219,8 @@ select:disabled{background:#f2f2f2;color:#999}
 })();
 </script>
 
-<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open menu" type="button">☰</button>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open menu" aria-expanded="false" type="button" onclick="window.__toggleWoodleMobileMenu && window.__toggleWoodleMobileMenu(event)">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="window.__closeWoodleMobileMenu && window.__closeWoodleMobileMenu()"></div>
 
 
 <div class="app-shell">
@@ -3600,6 +3600,28 @@ window.WOODLE_ACRYLIC_TEXT_CUTOUT_PRICING = [{"size": "2 INCH", "mrp": "20"}, {"
 })();
 </script>
 
+<script id="mobile-menu-direct-v138">
+window.__toggleWoodleMobileMenu=function(e){
+  if(e){e.preventDefault();e.stopPropagation();}
+  var sidebar=document.querySelector('.sidebar');
+  var overlay=document.getElementById('sidebarOverlay');
+  var toggle=document.getElementById('mobileMenuToggle');
+  if(!sidebar) return false;
+  var open=!sidebar.classList.contains('mobile-open');
+  sidebar.classList.toggle('mobile-open',open);
+  if(overlay) overlay.classList.toggle('mobile-open',open);
+  if(toggle){toggle.setAttribute('aria-expanded',open?'true':'false');toggle.setAttribute('aria-label',open?'Close menu':'Open menu');}
+  return false;
+};
+window.__closeWoodleMobileMenu=function(){
+  var sidebar=document.querySelector('.sidebar');
+  var overlay=document.getElementById('sidebarOverlay');
+  var toggle=document.getElementById('mobileMenuToggle');
+  if(sidebar) sidebar.classList.remove('mobile-open');
+  if(overlay) overlay.classList.remove('mobile-open');
+  if(toggle){toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open menu');}
+};
+</script>
 <script id="mobile-responsive-js-v137">
 (function(){
   function setMenu(open){
