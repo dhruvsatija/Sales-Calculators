@@ -1,4 +1,4 @@
-const CACHE_NAME = 'woodle-sales-calculators-v134';
+const CACHE_NAME = 'woodle-sales-calculators-v137';
 const APP_SHELL = [
   './index.html',
   './manifest.json',

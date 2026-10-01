@@ -79,12 +79,12 @@ select:disabled{background:#f2f2f2;color:#999}
     transition:transform .22s ease;
     overflow-y:auto!important;box-shadow:4px 0 18px rgba(0,0,0,.28)
   }
-  .sidebar.mobile-open{transform:translateX(0)}
+  .sidebar.mobile-open{transform:translateX(0)!important}
   .sidebar-overlay{
     display:none;position:fixed;inset:0;z-index:9999;
     background:rgba(0,0,0,.42)
   }
-  .sidebar-overlay.mobile-open{display:block}
+  .sidebar-overlay.mobile-open{display:block!important}
   .main-content,.content,.container{
     width:100%!important;max-width:100%!important;
     margin-left:0!important;padding-left:16px!important;
@@ -126,42 +126,103 @@ select:disabled{background:#f2f2f2;color:#999}
 
 </head>
 <body>
+
+<div id="woodle-login-gate" role="dialog" aria-modal="true" aria-labelledby="woodle-login-title">
+  <div id="woodle-login-card">
+    <div class="login-mark">W</div>
+    <h1 id="woodle-login-title">Woodle India Sales Calculators</h1>
+    <p>Enter the password to access the sales calculators.</p>
+    <form id="woodle-login-form">
+      <input id="woodle-password" type="password" inputmode="numeric" autocomplete="current-password"
+             placeholder="Enter password" aria-label="Password" maxlength="32" required>
+      <button id="woodle-login-button" type="submit">Unlock Calculator</button>
+      <div id="woodle-login-error" role="alert" aria-live="polite"></div>
+      <label id="woodle-remember"><input id="woodle-remember-check" type="checkbox"> Remember on this device</label>
+    </form>
+  </div>
+</div>
+<script id="woodle-password-gate-v135">
+(function(){
+  var HASH = '2aaad41b89dfad19e5668918018ae02695d7710bcbe5f2dc689234e8da492de3';
+  var STORAGE_KEY = 'woodle_sales_calculators_unlocked_v135';
+
+  function unlock(){
+    document.body.classList.add('woodle-unlocked');
+    var gate = document.getElementById('woodle-login-gate');
+    if (gate) gate.remove();
+  }
+
+  function bytesToHex(bytes){
+    var out = '';
+    for (var i=0;i<bytes.length;i++) out += bytes[i].toString(16).padStart(2,'0');
+    return out;
+  }
+
+  async function hashText(text){
+    if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+      var data = new TextEncoder().encode(text);
+      var digest = await crypto.subtle.digest('SHA-256', data);
+      return bytesToHex(new Uint8Array(digest));
+    }
+    return null;
+  }
+
+  function init(){
+    try {
+      if (localStorage.getItem(STORAGE_KEY) === '1') {
+        unlock();
+        return;
+      }
+    } catch(e) {}
+
+    var form = document.getElementById('woodle-login-form');
+    var input = document.getElementById('woodle-password');
+    var error = document.getElementById('woodle-login-error');
+    var remember = document.getElementById('woodle-remember-check');
+    if (!form || !input) return;
+
+    setTimeout(function(){ input.focus(); }, 50);
+
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+      error.textContent = '';
+      var button = document.getElementById('woodle-login-button');
+      button.disabled = true;
+      button.textContent = 'Checking...';
+      try {
+        var enteredHash = await hashText(input.value.trim());
+        if (enteredHash === HASH) {
+          if (remember.checked) {
+            try { localStorage.setItem(STORAGE_KEY, '1'); } catch(e) {}
+          }
+          unlock();
+        } else {
+          error.textContent = 'Incorrect password. Please try again.';
+          input.select();
+        }
+      } catch(e) {
+        error.textContent = 'Unable to verify password. Please refresh and try again.';
+      } finally {
+        if (document.getElementById('woodle-login-button')) {
+          button.disabled = false;
+          button.textContent = 'Unlock Calculator';
+        }
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, {once:true});
+  } else {
+    init();
+  }
+})();
+</script>
+
 <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open menu" type="button">☰</button>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 
-<script id="mobile-responsive-js-v128">
-(function(){
-  function initMobileMenu(){
-    const toggle=document.getElementById('mobileMenuToggle');
-    const overlay=document.getElementById('sidebarOverlay');
-    const sidebar=document.querySelector('.sidebar');
-    if(!toggle || !overlay || !sidebar) return;
-    function closeMenu(){
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('mobile-open');
-      toggle.setAttribute('aria-label','Open menu');
-    }
-    function openMenu(){
-      sidebar.classList.add('mobile-open');
-      overlay.classList.add('mobile-open');
-      toggle.setAttribute('aria-label','Close menu');
-    }
-    toggle.addEventListener('click',function(){
-      sidebar.classList.contains('mobile-open') ? closeMenu() : openMenu();
-    });
-    overlay.addEventListener('click',closeMenu);
-    sidebar.addEventListener('click',function(e){
-      if(e.target.closest('button,a,[role="tab"]')) setTimeout(closeMenu,80);
-    });
-    window.addEventListener('resize',function(){
-      if(window.innerWidth > 768) closeMenu();
-    });
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',initMobileMenu);
-  else initMobileMenu();
-})();
-</script>
 <div class="app-shell">
   <aside class="sidebar" aria-label="Calculator navigation">
     <div class="sidebar-brand">Woodle India Sales Calculators</div>
@@ -1790,10 +1851,6 @@ window.WOODLE_ACRYLIC_TEXT_CUTOUT_PRICING = [{"size": "2 INCH", "mrp": "20"}, {"
     }
   }, true);
 
-  new MutationObserver(() => setTimeout(update, 0))
-    .observe(document.body, {childList:true, subtree:true, characterData:true});
-
-  setInterval(update, 250);
 })();
 </script>
 
@@ -1845,10 +1902,6 @@ window.WOODLE_ACRYLIC_TEXT_CUTOUT_PRICING = [{"size": "2 INCH", "mrp": "20"}, {"
     }, true);
   });
 
-  // Also retry when an existing handler dynamically reveals a dependent control.
-  new MutationObserver(function(){
-    setTimeout(showMdfPrice, 0);
-  }).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 
@@ -1908,11 +1961,6 @@ window.WOODLE_ACRYLIC_TEXT_CUTOUT_PRICING = [{"size": "2 INCH", "mrp": "20"}, {"
     }
   }, true);
 
-  new MutationObserver(function(){
-    setTimeout(updateBulk, 0);
-  }).observe(document.body,{childList:true,subtree:true,characterData:true});
-
-  setInterval(updateBulk, 250);
 })();
 </script>
 
@@ -3552,39 +3600,64 @@ window.WOODLE_ACRYLIC_TEXT_CUTOUT_PRICING = [{"size": "2 INCH", "mrp": "20"}, {"
 })();
 </script>
 
-<script id="mobile-responsive-js-v128">
+<script id="mobile-responsive-js-v137">
 (function(){
-  function initMobileMenu(){
-    const toggle=document.getElementById('mobileMenuToggle');
-    const overlay=document.getElementById('sidebarOverlay');
-    const sidebar=document.querySelector('.sidebar');
-    if(!toggle || !overlay || !sidebar) return;
-    function closeMenu(){
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('mobile-open');
-      toggle.setAttribute('aria-label','Open menu');
-    }
-    function openMenu(){
+  function setMenu(open){
+    var sidebar=document.querySelector('.sidebar');
+    var overlay=document.getElementById('sidebarOverlay');
+    var toggle=document.getElementById('mobileMenuToggle');
+    if(!sidebar || !overlay || !toggle) return;
+    if(open){
       sidebar.classList.add('mobile-open');
       overlay.classList.add('mobile-open');
       toggle.setAttribute('aria-label','Close menu');
+      toggle.setAttribute('aria-expanded','true');
+    }else{
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('mobile-open');
+      toggle.setAttribute('aria-label','Open menu');
+      toggle.setAttribute('aria-expanded','false');
     }
-    toggle.addEventListener('click',function(){
-      sidebar.classList.contains('mobile-open') ? closeMenu() : openMenu();
-    });
-    overlay.addEventListener('click',closeMenu);
-    sidebar.addEventListener('click',function(e){
-      if(e.target.closest('button,a,[role="tab"]')) setTimeout(closeMenu,80);
-    });
-    window.addEventListener('resize',function(){
-      if(window.innerWidth > 768) closeMenu();
-    });
   }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',initMobileMenu);
-  else initMobileMenu();
+
+  // Delegated click handling works even when the sidebar is created after this script runs.
+  document.addEventListener('click', function(e){
+    var toggle=e.target.closest && e.target.closest('#mobileMenuToggle');
+    if(toggle){
+      e.preventDefault();
+      e.stopPropagation();
+      var sidebar=document.querySelector('.sidebar');
+      setMenu(!(sidebar && sidebar.classList.contains('mobile-open')));
+      return;
+    }
+    var overlay=e.target.closest && e.target.closest('#sidebarOverlay');
+    if(overlay){
+      e.preventDefault();
+      setMenu(false);
+      return;
+    }
+    var nav=e.target.closest && e.target.closest('.sidebar .sidebar-tab');
+    if(nav && window.innerWidth <= 768){
+      setTimeout(function(){setMenu(false);},50);
+    }
+  }, true);
+
+  window.addEventListener('resize', function(){
+    if(window.innerWidth > 768) setMenu(false);
+  }, {passive:true});
+
+  // Also initialize ARIA state without requiring the sidebar to exist yet.
+  function initState(){
+    var toggle=document.getElementById('mobileMenuToggle');
+    if(toggle){
+      toggle.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-label','Open menu');
+    }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',initState,{once:true});
+  else initState();
 })();
 </script>
-
 <script id="pwa-registration-v132">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
